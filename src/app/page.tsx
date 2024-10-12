@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 // 動的インポート
-const Metronome = dynamic(() => import('@/components/Metronome'), {
+const Metronome = dynamic(() => import('@/app/components/Metronome'), {
   ssr: false,
 });
 
