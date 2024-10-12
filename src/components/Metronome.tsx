@@ -1,7 +1,7 @@
 // components/Metronome.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 export default function Metronome() {
   const [bpm, setBpm] = useState(120);
@@ -11,38 +11,17 @@ export default function Metronome() {
 
   const initializeAudioContext = () => {
     if (!audioContext.current) {
-      audioContext.current = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
+      audioContext.current = new window.AudioContext();
     }
   };
 
-  useEffect(() => {
-    if (isPlaying) {
-      startMetronome();
-    } else {
-      stopMetronome();
-    }
-
-    return () => {
-      stopMetronome();
-    };
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (isPlaying) {
-      stopMetronome();
-      startMetronome();
-    }
-  }, [bpm]);
-
-  const startMetronome = () => {
+  const startMetronome = useCallback(() => {
     const interval = (60 / bpm) * 1000;
     playClick();
-
     intervalId.current = setInterval(() => {
       playClick();
     }, interval);
-  };
+  }, [bpm]);
 
   const stopMetronome = () => {
     if (intervalId.current) {
@@ -71,6 +50,25 @@ export default function Metronome() {
       osc.stop(audioContext.current.currentTime + 0.02);
     }
   };
+
+  useEffect(() => {
+    if (isPlaying) {
+      startMetronome();
+    } else {
+      stopMetronome();
+    }
+
+    return () => {
+      stopMetronome();
+    };
+  }, [isPlaying, startMetronome]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      stopMetronome();
+      startMetronome();
+    }
+  }, [bpm, isPlaying, startMetronome]);
 
   const handlePlay = () => {
     initializeAudioContext();
