@@ -1,7 +1,6 @@
-// components/Metronome.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Metronome() {
   const [bpm, setBpm] = useState(120);
@@ -9,23 +8,49 @@ export default function Metronome() {
   const intervalId = useRef<NodeJS.Timeout | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
 
-  const initializeAudioContext = () => {
+  const initializeAudioContext = async () => {
     if (!audioContext.current) {
-      audioContext.current = new window.AudioContext();
+      audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioContext.current.state === 'suspended') {
+      await audioContext.current.resume();
     }
   };
 
-  const startMetronome = useCallback(() => {
+  useEffect(() => {
+    if (isPlaying) {
+      startMetronome();
+    } else {
+      stopMetronome();
+    }
+
+    return () => {
+      stopMetronome();
+    };
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      stopMetronome();
+      startMetronome();
+    }
+  }, [bpm]);
+
+  const startMetronome = async () => {
+    await initializeAudioContext();
+
     const interval = (60 / bpm) * 1000;
     playClick();
+
     intervalId.current = setInterval(() => {
       playClick();
     }, interval);
-  }, [bpm]);
+  };
 
   const stopMetronome = () => {
     if (intervalId.current) {
       clearInterval(intervalId.current);
+      intervalId.current = null;
     }
   };
 
@@ -51,27 +76,8 @@ export default function Metronome() {
     }
   };
 
-  useEffect(() => {
-    if (isPlaying) {
-      startMetronome();
-    } else {
-      stopMetronome();
-    }
-
-    return () => {
-      stopMetronome();
-    };
-  }, [isPlaying, startMetronome]);
-
-  useEffect(() => {
-    if (isPlaying) {
-      stopMetronome();
-      startMetronome();
-    }
-  }, [bpm, isPlaying, startMetronome]);
-
-  const handlePlay = () => {
-    initializeAudioContext();
+  const handlePlay = async () => {
+    await initializeAudioContext();
     setIsPlaying(true);
   };
 
@@ -80,7 +86,7 @@ export default function Metronome() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-safe-top pb-safe-bottom container">
+    <div className="flex flex-col items-center">
       <div className="flex items-center mb-6">
         <label className="mr-2 text-lg">BPM:</label>
         <input
