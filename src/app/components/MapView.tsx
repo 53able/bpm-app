@@ -1,11 +1,13 @@
 // components/MapView.tsx
 "use client";
 
+import { useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
   Polyline,
   Marker,
+  useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -15,10 +17,9 @@ interface MapViewProps {
 }
 
 export default function MapView({ positions }: MapViewProps) {
-  const center: [number, number] =
-    positions.length > 0
-      ? positions[positions.length - 1]
-      : [35.6895, 139.6917]; // デフォルトは東京
+  const center: [number, number] = positions.length
+    ? positions[positions.length - 1]
+    : [35.6895, 139.6917]; // デフォルトは東京
 
   return (
     <MapContainer
@@ -27,6 +28,23 @@ export default function MapView({ positions }: MapViewProps) {
       style={{ height: "400px", width: "100%" }}
       scrollWheelZoom={false}
     >
+      <MapContent positions={positions} />
+    </MapContainer>
+  );
+}
+
+function MapContent({ positions }: MapViewProps) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (positions.length > 0) {
+      const lastPosition = positions[positions.length - 1];
+      map.setView(lastPosition, map.getZoom());
+    }
+  }, [positions, map]);
+
+  return (
+    <>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -37,7 +55,7 @@ export default function MapView({ positions }: MapViewProps) {
           <Marker position={positions[positions.length - 1]} />
         </>
       )}
-    </MapContainer>
+    </>
   );
 }
 
