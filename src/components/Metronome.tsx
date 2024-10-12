@@ -133,7 +133,6 @@ export default function Metronome() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">BPM メトロノーム</h1>
       <div className="flex flex-col items-center space-y-6 mb-8 w-full max-w-md">
         {/* BPM入力フィールド */}
         <div className="flex items-center w-full">
