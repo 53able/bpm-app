@@ -11,6 +11,7 @@ import { VolumeSlider } from "./VolumeSlider";
 import { DecayTimeInput } from "./DecayTimeInput";
 import { PlayButton } from "./PlayButton";
 import MapView from "./MapView";
+import { formatTime } from "../utils/formatTime";
 
 export default function Metronome() {
   // 設定の状態管理
@@ -30,20 +31,22 @@ export default function Metronome() {
   });
 
   // 距離計測のカスタムフック
-  const { distance, positions, error, startTracking, stopTracking } =
-    useDistanceTracker();
+  const {
+    distance,
+    positions,
+    error,
+    elapsedTime,
+  } = useDistanceTracker(isPlaying);
 
-  // 再生ボタンを押したときのハンドラ
-  const handleStart = () => {
-    handlePlay(); // メトロノームを開始
-    startTracking(); // 距離計測を開始
-  };
+  // ペースの計算
+  const distanceKm = distance / 1000;
+  const elapsedMinutes = elapsedTime / 60;
 
-  // 停止ボタンを押したときのハンドラ
-  const handleStopAll = () => {
-    handleStop(); // メトロノームを停止
-    stopTracking(); // 距離計測を停止
-  };
+  const paceMinPerKm =
+    distanceKm > 0 ? elapsedMinutes / distanceKm : 0;
+
+  const speedKmh =
+    elapsedTime > 0 ? (distanceKm / (elapsedTime / 3600)) : 0;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
@@ -56,9 +59,20 @@ export default function Metronome() {
         <DecayTimeInput decayTime={decayTime} setDecayTime={setDecayTime} />
       </div>
 
-    {/* 距離の表示 */}
+      {/* 距離と時間の表示 */}
+      <p className="text-2xl mb-2">
+        距離: {distanceKm.toFixed(2)} km
+      </p>
+      <p className="text-2xl mb-2">
+        時間: {formatTime(elapsedTime)}
+      </p>
+
+      {/* ペースの表示 */}
+      <p className="text-2xl mb-2">
+        ペース: {paceMinPerKm > 0 ? paceMinPerKm.toFixed(2) + " 分/km" : " - "}
+      </p>
       <p className="text-2xl mb-4">
-        距離: {(distance / 1000).toFixed(2)} km
+        スピード: {speedKmh > 0 ? speedKmh.toFixed(2) + " km/h" : " - "}
       </p>
 
       {/* 地図の表示 */}
@@ -72,8 +86,8 @@ export default function Metronome() {
       {/* 再生・停止ボタン */}
       <PlayButton
         isPlaying={isPlaying}
-        handlePlay={handleStart}
-        handleStop={handleStopAll}
+        handlePlay={handlePlay}
+        handleStop={handleStop}
       />
     </div>
   );

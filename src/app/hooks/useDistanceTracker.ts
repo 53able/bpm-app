@@ -1,35 +1,18 @@
 // hooks/useDistanceTracker.ts
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
-export function useDistanceTracker() {
+export function useDistanceTracker(isTracking: boolean) {
   const [distance, setDistance] = useState(0);
   const [positions, setPositions] = useState<[number, number][]>([]);
   const [error, setError] = useState("");
+  const [elapsedTime, setElapsedTime] = useState(0); // 経過時間（秒）
+
   const watchId = useRef<number | null>(null);
   const prevPosition = useRef<GeolocationPosition | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const timerId = useRef<number | null>(null);
 
-  const startTracking = () => {
-    if (!navigator.geolocation) {
-      setError("このブラウザでは位置情報がサポートされていません。");
-      return;
-    }
-
-    watchId.current = navigator.geolocation.watchPosition(
-      handlePositionUpdate,
-      handleError,
-      { enableHighAccuracy: true }
-    );
-  };
-
-  const stopTracking = () => {
-    if (watchId.current !== null) {
-      navigator.geolocation.clearWatch(watchId.current);
-      watchId.current = null;
-    }
-    prevPosition.current = null;
-  };
-
-  const handlePositionUpdate = (position: GeolocationPosition) => {
+  const handlePositionUpdate = useCallback((position: GeolocationPosition) => {
     const { latitude, longitude } = position.coords;
     setPositions((prevPositions) => [...prevPositions, [latitude, longitude]]);
 
@@ -43,11 +26,63 @@ export function useDistanceTracker() {
       setDistance((prevDistance) => prevDistance + dist);
     }
     prevPosition.current = position;
-  };
+  }, []);
 
-  const handleError = (error: GeolocationPositionError) => {
+  const handleError = useCallback((error: GeolocationPositionError) => {
     setError(error.message);
-  };
+  }, []);
+  const stopTracking = useCallback(() => {
+    if (watchId.current !== null) {
+      navigator.geolocation.clearWatch(watchId.current);
+      watchId.current = null;
+    }
+    if (timerId.current !== null) {
+      clearInterval(timerId.current);
+      timerId.current = null;
+    }
+    prevPosition.current = null;
+    startTimeRef.current = null;
+    // 距離や経過時間をリセットする場合は以下を有効にしてください
+    // setDistance(0);
+    // setPositions([]);
+    // setElapsedTime(0);
+  }, []);
+
+  const startTracking = useCallback(() => {
+    if (!navigator.geolocation) {
+      setError("このブラウザでは位置情報がサポートされていません。");
+      return;
+    }
+
+    startTimeRef.current = Date.now();
+    setElapsedTime(0); // 経過時間をリセット
+
+    timerId.current = window.setInterval(() => {
+      if (startTimeRef.current !== null) {
+        setElapsedTime((Date.now() - startTimeRef.current) / 1000); // 秒単位
+      }
+    }, 1000);
+
+    watchId.current = navigator.geolocation.watchPosition(
+      handlePositionUpdate,
+      handleError,
+      { enableHighAccuracy: true }
+    );
+  }, [handlePositionUpdate, handleError]);
+
+  useEffect(() => {
+    if (isTracking) {
+      startTracking();
+    } else {
+      stopTracking();
+    }
+
+    return () => {
+      stopTracking();
+    };
+  }, [isTracking, startTracking, stopTracking]);
+
+
 
   const calculateDistance = (
     lat1: number,
@@ -63,7 +98,10 @@ export function useDistanceTracker() {
 
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      Math.cos(φ1) *
+        Math.cos(φ2) *
+        Math.sin(Δλ / 2) *
+        Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     const d = R * c; // 距離（メートル）
@@ -74,7 +112,6 @@ export function useDistanceTracker() {
     distance,
     positions,
     error,
-    startTracking,
-    stopTracking,
+    elapsedTime,
   };
 }
