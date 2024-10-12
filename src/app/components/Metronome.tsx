@@ -69,10 +69,10 @@ export default function Metronome() {
 
       {/* ペースの表示 */}
       <p className="text-2xl mb-2">
-        ペース: {paceMinPerKm > 0 ? paceMinPerKm.toFixed(2) + " 分/km" : " - "}
+        ペース: {paceMinPerKm > 0 ? paceMinPerKm.toFixed(2) : " - "} 分/km
       </p>
       <p className="text-2xl mb-4">
-        スピード: {speedKmh > 0 ? speedKmh.toFixed(2) + " km/h" : " - "}
+        スピード: {speedKmh > 0 ? speedKmh.toFixed(2) : " - "} km/h
       </p>
 
       {/* 地図の表示 */}
