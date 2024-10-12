@@ -5,14 +5,16 @@ import { useState, useEffect, useRef } from "react";
 export default function Metronome() {
   const [bpm, setBpm] = useState(120);
   const [isPlaying, setIsPlaying] = useState(false);
-  const intervalId = useRef<NodeJS.Timeout | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
+  const nextNoteTime = useRef(0);
+  const schedulerId = useRef<number | null>(null);
 
   const initializeAudioContext = async () => {
     if (!audioContext.current) {
-      audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContext.current = new (window.AudioContext ||
+        window.webkitAudioContext)();
     }
-    if (audioContext.current.state === 'suspended') {
+    if (audioContext.current.state === "suspended") {
       await audioContext.current.resume();
     }
   };
@@ -27,6 +29,7 @@ export default function Metronome() {
     return () => {
       stopMetronome();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
 
   useEffect(() => {
@@ -34,27 +37,34 @@ export default function Metronome() {
       stopMetronome();
       startMetronome();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bpm]);
 
   const startMetronome = async () => {
     await initializeAudioContext();
-
-    const interval = (60 / bpm) * 1000;
-    playClick();
-
-    intervalId.current = setInterval(() => {
-      playClick();
-    }, interval);
+    nextNoteTime.current = audioContext.current!.currentTime;
+    scheduler();
   };
 
   const stopMetronome = () => {
-    if (intervalId.current) {
-      clearInterval(intervalId.current);
-      intervalId.current = null;
+    if (schedulerId.current) {
+      cancelAnimationFrame(schedulerId.current);
+      schedulerId.current = null;
     }
   };
 
-  const playClick = () => {
+  const scheduler = () => {
+    while (
+      nextNoteTime.current <
+      audioContext.current!.currentTime + 0.1 /* 100ms先までスケジュール */
+    ) {
+      scheduleClick(nextNoteTime.current);
+      nextNoteTime.current += 60.0 / bpm;
+    }
+    schedulerId.current = requestAnimationFrame(scheduler);
+  };
+
+  const scheduleClick = (time: number) => {
     if (audioContext.current) {
       const osc = audioContext.current.createOscillator();
       const envelope = audioContext.current.createGain();
@@ -62,17 +72,14 @@ export default function Metronome() {
       osc.type = "square";
       osc.frequency.value = 1000;
 
-      envelope.gain.setValueAtTime(1, audioContext.current.currentTime);
-      envelope.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioContext.current.currentTime + 0.01
-      );
+      envelope.gain.setValueAtTime(1, time);
+      envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.01);
 
       osc.connect(envelope);
       envelope.connect(audioContext.current.destination);
 
-      osc.start(audioContext.current.currentTime);
-      osc.stop(audioContext.current.currentTime + 0.02);
+      osc.start(time);
+      osc.stop(time + 0.02);
     }
   };
 
