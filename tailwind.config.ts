@@ -6,10 +6,15 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
- padding: {
-        'safe-top': 'env(safe-area-inset-top)',
-        'safe-bottom': 'env(safe-area-inset-bottom)',
+    padding: {
+      'safe-top': 'env(safe-area-inset-top)',
+      'safe-bottom': 'env(safe-area-inset-bottom)',
+    },
+    extend: {
+      fontFamily: {
+        sans: ['"Noto Sans JP"', "Arial", "sans-serif"],
       },
+    },
   },
   plugins: [],
 };
