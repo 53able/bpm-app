@@ -1,3 +1,5 @@
+// components/Metronome.tsx
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -70,7 +72,6 @@ export default function Metronome() {
     return () => {
       stopMetronome();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying]);
 
   const startMetronome = async () => {
@@ -129,85 +130,88 @@ export default function Metronome() {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      {/* BPM入力フィールド */}
-      <div className="flex items-center mb-4">
-        <label className="mr-2 text-lg">BPM:</label>
-        <input
-          type="number"
-          inputMode="numeric"
-          pattern="\d*"
-          value={bpm}
-          onChange={(e) => setBpm(Number(e.target.value))}
-          className="border rounded px-4 py-2 w-24 text-center text-lg"
-          min={40}
-          max={240}
-        />
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">BPM メトロノーム</h1>
+      <div className="flex flex-col items-center space-y-6 mb-8 w-full max-w-md">
+        {/* BPM入力フィールド */}
+        <div className="flex items-center w-full">
+          <label className="mr-4 text-2xl w-1/3 text-right">BPM:</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            pattern="\d*"
+            value={bpm}
+            onChange={(e) => setBpm(Number(e.target.value))}
+            className="border rounded px-4 py-2 w-2/3 text-center text-2xl"
+            min={40}
+            max={240}
+          />
+        </div>
 
-      {/* 周波数入力フィールド */}
-      <div className="flex items-center mb-4">
-        <label className="mr-2 text-lg">周波数 (Hz):</label>
-        <input
-          type="number"
-          inputMode="numeric"
-          pattern="\d*"
-          value={frequency}
-          onChange={(e) => setFrequency(Number(e.target.value))}
-          className="border rounded px-4 py-2 w-24 text-center text-lg"
-          min={100}
-          max={5000}
-        />
-      </div>
+        {/* 周波数入力フィールド */}
+        <div className="flex items-center w-full">
+          <label className="mr-4 text-2xl w-1/3 text-right">周波数 (Hz):</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            pattern="\d*"
+            value={frequency}
+            onChange={(e) => setFrequency(Number(e.target.value))}
+            className="border rounded px-4 py-2 w-2/3 text-center text-2xl"
+            min={100}
+            max={5000}
+          />
+        </div>
 
-      {/* 波形選択フィールド */}
-      <div className="flex items-center mb-4">
-        <label className="mr-2 text-lg">波形:</label>
-        <select
-          value={waveform}
-          onChange={(e) => setWaveform(e.target.value as OscillatorType)}
-          className="border rounded px-4 py-2 text-lg"
-        >
-          <option value="sine">サイン波</option>
-          <option value="square">矩形波</option>
-          <option value="sawtooth">ノコギリ波</option>
-          <option value="triangle">三角波</option>
-        </select>
-      </div>
+        {/* 波形選択フィールド */}
+        <div className="flex items-center w-full">
+          <label className="mr-4 text-2xl w-1/3 text-right">波形:</label>
+          <select
+            value={waveform}
+            onChange={(e) => setWaveform(e.target.value as OscillatorType)}
+            className="border rounded px-4 py-2 text-2xl w-2/3"
+          >
+            <option value="sine">サイン波</option>
+            <option value="square">矩形波</option>
+            <option value="sawtooth">ノコギリ波</option>
+            <option value="triangle">三角波</option>
+          </select>
+        </div>
 
-      {/* 音量調整スライダー */}
-      <div className="flex items-center mb-4">
-        <label className="mr-2 text-lg">音量:</label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={volume}
-          onChange={(e) => setVolume(Number(e.target.value))}
-          className="w-48"
-        />
-      </div>
+        {/* 音量調整スライダー */}
+        <div className="flex items-center w-full">
+          <label className="mr-4 text-2xl w-1/3 text-right">音量:</label>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="w-2/3"
+          />
+        </div>
 
-      {/* ディケイタイム入力フィールド */}
-      <div className="flex items-center mb-6">
-        <label className="mr-2 text-lg">減衰時間 (秒):</label>
-        <input
-          type="number"
-          value={decayTime}
-          onChange={(e) => setDecayTime(Number(e.target.value))}
-          className="border rounded px-4 py-2 w-24 text-center text-lg"
-          min={0.001}
-          max={1}
-          step={0.001}
-        />
+        {/* ディケイタイム入力フィールド */}
+        <div className="flex items-center w-full">
+          <label className="mr-4 text-2xl w-1/3 text-right">減衰時間 (秒):</label>
+          <input
+            type="number"
+            value={decayTime}
+            onChange={(e) => setDecayTime(Number(e.target.value))}
+            className="border rounded px-4 py-2 w-2/3 text-center text-2xl"
+            min={0.001}
+            max={1}
+            step={0.001}
+          />
+        </div>
       </div>
 
       {/* 再生・停止ボタン */}
       {!isPlaying ? (
         <button
           onClick={handlePlay}
-          className="bg-blue-500 text-white px-8 py-4 rounded-full text-lg active:bg-blue-600 mb-4"
+          className="bg-blue-500 text-white px-12 py-4 rounded-full text-2xl active:bg-blue-600 mb-4"
           aria-label="メトロノームを再生"
         >
           再生
@@ -215,7 +219,7 @@ export default function Metronome() {
       ) : (
         <button
           onClick={handleStop}
-          className="bg-red-500 text-white px-8 py-4 rounded-full text-lg active:bg-red-600 mb-4"
+          className="bg-red-500 text-white px-12 py-4 rounded-full text-2xl active:bg-red-600 mb-4"
           aria-label="メトロノームを停止"
         >
           停止
