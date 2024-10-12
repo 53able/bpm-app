@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 declare global {
   interface Window {
@@ -38,6 +38,33 @@ export default function Metronome() {
   useEffect(() => {
     waveformRef.current = waveform;
   }, [waveform]);
+  const initializeAudioContext = useCallback(async () => {
+    if (!audioContext.current) {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+      audioContext.current = new AudioContextClass();
+    }
+    if (audioContext.current.state === "suspended") {
+      await audioContext.current.resume();
+    }
+  }, []);
+
+  const scheduler = useCallback(() => {
+    while (
+      nextNoteTime.current <
+      audioContext.current!.currentTime + 0.1
+    ) {
+      scheduleClick(nextNoteTime.current);
+      nextNoteTime.current += 60.0 / bpmRef.current;
+    }
+    schedulerId.current = requestAnimationFrame(scheduler);
+  }, []);
+
+  const startMetronome = useCallback(async () => {
+    await initializeAudioContext();
+    nextNoteTime.current = audioContext.current!.currentTime;
+    scheduler();
+  }, [initializeAudioContext, scheduler]);
 
   useEffect(() => {
     volumeRef.current = volume;
@@ -51,16 +78,7 @@ export default function Metronome() {
   const nextNoteTime = useRef(0);
   const schedulerId = useRef<number | null>(null);
 
-  const initializeAudioContext = async () => {
-    if (!audioContext.current) {
-      const AudioContextClass =
-        window.AudioContext || window.webkitAudioContext;
-      audioContext.current = new AudioContextClass();
-    }
-    if (audioContext.current.state === "suspended") {
-      await audioContext.current.resume();
-    }
-  };
+
 
   useEffect(() => {
     if (isPlaying) {
@@ -72,30 +90,14 @@ export default function Metronome() {
     return () => {
       stopMetronome();
     };
-  }, [isPlaying]);
+  }, [isPlaying, startMetronome]);
 
-  const startMetronome = async () => {
-    await initializeAudioContext();
-    nextNoteTime.current = audioContext.current!.currentTime;
-    scheduler();
-  };
 
   const stopMetronome = () => {
     if (schedulerId.current) {
       cancelAnimationFrame(schedulerId.current);
       schedulerId.current = null;
     }
-  };
-
-  const scheduler = () => {
-    while (
-      nextNoteTime.current <
-      audioContext.current!.currentTime + 0.1
-    ) {
-      scheduleClick(nextNoteTime.current);
-      nextNoteTime.current += 60.0 / bpmRef.current;
-    }
-    schedulerId.current = requestAnimationFrame(scheduler);
   };
 
   const scheduleClick = (time: number) => {
