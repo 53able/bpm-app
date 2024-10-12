@@ -1,11 +1,5 @@
 // app/page.tsx
-
-import dynamic from 'next/dynamic';
-
-// 動的インポート
-const Metronome = dynamic(() => import('@/app/components/Metronome'), {
-  ssr: false,
-});
+import Metronome from '@/app/components/Metronome';
 
 export default function Home() {
   return (

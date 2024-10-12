@@ -2,16 +2,16 @@
 "use client";
 
 import { useState } from "react";
-import { useMetronome } from "../hooks/useMetronome";
-import { useDistanceTracker } from "../hooks/useDistanceTracker";
-import { BPMInput } from "./BPMInput";
-import { FrequencyInput } from "./FrequencyInput";
-import { WaveformSelect } from "./WaveformSelect";
-import { VolumeSlider } from "./VolumeSlider";
-import { DecayTimeInput } from "./DecayTimeInput";
-import { PlayButton } from "./PlayButton";
-import MapView from "./MapView";
-import { formatTime } from "../utils/formatTime";
+import { useMetronome } from "@/app/hooks/useMetronome";
+import { useDistanceTracker } from "@/app/hooks/useDistanceTracker";
+import { BPMInput } from "@/app/components/BPMInput";
+import { FrequencyInput } from "@/app/components/FrequencyInput";
+import { WaveformSelect } from "@/app/components/WaveformSelect";
+import { VolumeSlider } from "@/app/components/VolumeSlider";
+import { DecayTimeInput } from "@/app/components/DecayTimeInput";
+import { PlayButton } from "@/app/components/PlayButton";
+import MapView from "@/app/components/MapView";
+import { formatTime } from "@/app/utils/formatTime";
 
 export default function Metronome() {
   // 設定の状態管理
