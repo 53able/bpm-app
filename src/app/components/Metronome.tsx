@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useMetronome } from "@/app/hooks/useMetronome";
 import { useDistanceTracker } from "@/app/hooks/useDistanceTracker";
 import { BPMInput } from "@/app/components/BPMInput";
@@ -10,8 +11,9 @@ import { WaveformSelect } from "@/app/components/WaveformSelect";
 import { VolumeSlider } from "@/app/components/VolumeSlider";
 import { DecayTimeInput } from "@/app/components/DecayTimeInput";
 import { PlayButton } from "@/app/components/PlayButton";
-import MapView from "@/app/components/MapView";
 import { formatTime } from "@/app/utils/formatTime";
+
+const MapView = dynamic(() => import("@/app/components/MapView"), { ssr: false });
 
 export default function Metronome() {
   // 設定の状態管理
